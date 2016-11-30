@@ -22,14 +22,12 @@ def get_relations(state_code):
     response = requests.get(overpass_api_url, params=payload)
     relations = response.json()
     out = []
-    print(response.url)
     if 'elements' in relations and len(relations['elements']) > 0:
-        print(relations['elements'][0])
         for element in relations['elements']:
+            # flatten the tags and remove members
             del element['members']
             if 'tags' in element:
                 for tag in element['tags']:
-                    print(tag)
                     element[tag] = element['tags'][tag]
             del element['tags']
             out.append(element)

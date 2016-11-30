@@ -21,13 +21,11 @@
   <span id="waiting" style="color:blue;display:none"> getting from overpass...</span>
   <hr>
   <table id="relationtable">
-    <thead><th>bla</th><th>bla</th></thead>
-    <tbody>
-    </tbody>
   </table>
 </body>
 <script type="text/javascript">
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  var rTable;
 
   // retrieve state relations from overpass
   function retrieve_state_relations(state_code) {
@@ -35,8 +33,8 @@
     $("#waiting").text('getting from overpass...').css({'color':'blue'}).show()
     // get relations from overpass
     $.getJSON($SCRIPT_ROOT + '/_routes/' + state_code, function(data) {
-      // do something useful..
-      console.log(data);
+      // replace data in table
+      rTable.rows.add(data).draw();
     }).done(function() {
       // hide busy thing
       $("#waiting").hide()
@@ -45,8 +43,19 @@
     });
   }
 
-  // on load, fill state dropdown...
   $(document).ready(function(){
+    // init relations datatables
+    rTable = $("#relationtable").DataTable({
+      "columns": [
+        { "data": "network" },
+        { "data": "ref" },
+        { "data": "timestamp" },
+        { "data": "uid" },
+        { "data": "user" },
+        { "data": "version" }
+      ]});
+
+    // fill state dropdown...
     $.getJSON($SCRIPT_ROOT + '/_states', function(data) {
       var items = [];
       // for each element found in json...
@@ -57,14 +66,14 @@
       // then append the array of options to the select thing
       $("#stateselect").append(items);
     });
-    // ...and initiate datatable
-    $('#relationtable').DataTable();
   });
 
   // on select different state, spring into action
   $('#stateselect').change(function() {
     // get the selected state's id
     var state_code = $('#stateselect').find(":selected")[0].id;
+    // clear the table
+    rTable.clear();
     // call retrieve function with this state id
     retrieve_state_relations(state_code);
   });
