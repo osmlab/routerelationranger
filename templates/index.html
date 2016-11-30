@@ -47,12 +47,31 @@
     // init relations datatables
     rTable = $("#relationtable").DataTable({
       "columns": [
-        { "data": "network" },
-        { "data": "ref" },
-        { "data": "timestamp" },
-        { "data": "uid" },
-        { "data": "user" },
-        { "data": "version" }
+        {
+          "title": "Network",
+          "data": "network"
+        },
+        {
+          "title": "Route #",
+          "data": "ref",
+          "type": "num"
+        },
+        {
+          "title": "Last edited",
+          "data": "timestamp",
+          "type": "date"
+        },
+        {
+          "title": "OSM user id",
+          "data": "uid"
+        },
+        {
+          "title": "OSM user",
+          "data": "user"
+        },
+        {
+          "title": "Version",
+          "data": "version" }
       ]});
 
     // fill state dropdown...
