@@ -3,22 +3,22 @@
 <head>
   <title>OSM US Route Relation Ranger</title>
   <script
-  src="https://code.jquery.com/jquery-3.1.1.min.js"
-  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-  crossorigin="anonymous"></script>
+    src="https://code.jquery.com/jquery-3.1.1.min.js"
+    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+    crossorigin="anonymous"></script>
   <script
-  src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
-  crossorigin="anonymous"></script>
+    src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
+    crossorigin="anonymous"></script>
   <link
-  rel=stylesheet
-  href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
+    rel=stylesheet
+    href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
   <p>Pick a state:
   <select id="stateselect">
   </select>
-  <span id="waiting" style="color:blue;display:none">getting from overpass...</span>
+  <span id="waiting" style="color:blue;display:none"> getting from overpass...</span>
   <hr>
   <table id="relationtable">
     <thead><th>bla</th><th>bla</th></thead>
@@ -32,13 +32,16 @@
   // retrieve state relations from overpass
   function retrieve_state_relations(state_code) {
     // show busy thing
-    $("#waiting").show()
+    $("#waiting").text('getting from overpass...').css({'color':'blue'}).show()
     // get relations from overpass
     $.getJSON($SCRIPT_ROOT + '/_routes/' + state_code, function(data) {
       // do something useful..
+      console.log(data);
     }).done(function() {
       // hide busy thing
       $("#waiting").hide()
+    }).fail(function() {
+      $("#waiting").text('uh oh').css({'color':'red'});
     });
   }
 
