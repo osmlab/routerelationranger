@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <title>OSM US Route Relation Ranger</title>
+  <script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+  crossorigin="anonymous"></script>
+  <script
+  src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
+  crossorigin="anonymous"></script>
+  <link
+  rel=stylesheet
+  href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
+</head>
+<body>
+  <h1>OSM US Route Relation Ranger</h1>
+  <p>Pick a state:
+  <select id="stateselect">
+  </select>
+  <span id="waiting" style="color:blue;display:none">getting from overpass...</span>
+  <hr>
+  <table id="relationtable">
+    <thead><th>bla</th><th>bla</th></thead>
+    <tbody>
+    </tbody>
+  </table>
+</body>
+<script type="text/javascript">
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+  function retrieve_state_relations(state_code) {
+    $("#waiting").show()
+    $.getJSON($SCRIPT_ROOT + '/_routes/' + state_code, function(data) {
+      console.log(data);
+    }).done(function() {
+      $("#waiting").hide()
+    });
+  }
+
+  // on load, fill state dropdown...
+  $(document).ready(function(){
+    $.getJSON($SCRIPT_ROOT + '/_states', function(data) {
+      var items = [];
+      $.each( data, function( key, val ) {
+        items.push( "<option id='" + val + "'>" + key + "</option>" );
+      });
+      $("#stateselect").append(items);
+    });
+    // ...and initiate datatable
+    $('#relationtable').DataTable();
+  });
+
+  // on select different state, spring into action
+  $('#stateselect').change(function() {
+    var state_code = $('#stateselect').find(":selected")[0].id;
+    retrieve_state_relations(state_code);
+  });
+</script>
+</html>
