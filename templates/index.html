@@ -29,11 +29,15 @@
 <script type="text/javascript">
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
+  // retrieve state relations from overpass
   function retrieve_state_relations(state_code) {
+    // show busy thing
     $("#waiting").show()
+    // get relations from overpass
     $.getJSON($SCRIPT_ROOT + '/_routes/' + state_code, function(data) {
-      console.log(data);
+      // do something useful..
     }).done(function() {
+      // hide busy thing
       $("#waiting").hide()
     });
   }
@@ -42,9 +46,12 @@
   $(document).ready(function(){
     $.getJSON($SCRIPT_ROOT + '/_states', function(data) {
       var items = [];
+      // for each element found in json...
       $.each( data, function( key, val ) {
+        // add an option element to the array
         items.push( "<option id='" + val + "'>" + key + "</option>" );
       });
+      // then append the array of options to the select thing
       $("#stateselect").append(items);
     });
     // ...and initiate datatable
@@ -53,7 +60,9 @@
 
   // on select different state, spring into action
   $('#stateselect').change(function() {
+    // get the selected state's id
     var state_code = $('#stateselect').find(":selected")[0].id;
+    // call retrieve function with this state id
     retrieve_state_relations(state_code);
   });
 </script>
