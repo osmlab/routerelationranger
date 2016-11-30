@@ -18,7 +18,7 @@ def get_states():
 @app.route('/_routes/<state_code>')
 def get_relations(state_code):
     overpass_api_url = 'https://overpass-api.de/api/interpreter'
-    payload = {'data': '[out:json];relation[network="US:{}"];out meta;'.format(state_code.upper())}
+    payload = {'data': '[out:json];relation[network="US:{}"][ref];out meta;'.format(state_code.upper())}
     response = requests.get(overpass_api_url, params=payload)
     relations = response.json()
     out = []
@@ -30,9 +30,6 @@ def get_relations(state_code):
                 for tag in element['tags']:
                     element[tag] = element['tags'][tag]
             del element['tags']
-            # add ref if missing
-            if not 'ref' in element:
-                element['ref'] = '<none>'
             out.append(element)
         return jsonify(out)
     return []
