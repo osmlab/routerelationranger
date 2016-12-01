@@ -56,7 +56,7 @@ def get_relations(state_code):
                 id=osmid)
 
             # append actions column
-            element['actions'] = '<a href="http://ra.osmsurround.org/analyzeRelation?relationId={id}&_noCache=on">Open in OSM relation analyzer</a> | <a href="javascript:loadInJosm({id});">Edit in JOSM</a> | <a href="https://en.wikipedia.org/wiki/{statename}_State_Route_{routenumber}">Wikipedia</a>'.format(
+            element['actions'] = '<a href="http://ra.osmsurround.org/analyzeRelation?relationId={id}&_noCache=on">analyze</a> | <a href="javascript:loadInJosm({id});">josm</a> | <a href="https://en.wikipedia.org/wiki/{statename}_State_Route_{routenumber}">wikipedia</a>'.format(
                 id=osmid,
                 statename=us.states.lookup(state_code).name,
                 routenumber=element['ref'])
