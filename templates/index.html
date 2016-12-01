@@ -2,16 +2,11 @@
 <html>
 <head>
   <title>OSM US Route Relation Ranger</title>
-  <script
-    src="https://code.jquery.com/jquery-3.1.1.min.js"
-    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-    crossorigin="anonymous"></script>
-  <script
-    src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
-    crossorigin="anonymous"></script>
-  <link
-    rel=stylesheet
-    href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+  <link rel=stylesheet href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
+  <script src="https://cdn.datatables.net/plug-ins/1.10.12/sorting/datetime-moment.js"></script>
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
@@ -26,6 +21,8 @@
 <script type="text/javascript">
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
   var rTable;
+  // initialize datatables moment-based date parsing
+  $.fn.dataTable.moment('YYYY-MM-DD HH:mmA');
 
   // retrieve state relations from overpass
   function retrieve_state_relations(state_code) {
@@ -49,22 +46,13 @@
       "pageLength": 50,
       "columns": [
         {
-          "title": "Network",
-          "data": "network"
-        },
-        {
           "title": "Route #",
           "data": "ref",
           "type": "num"
         },
         {
           "title": "Last edited",
-          "data": "timestamp",
-          "type": "date"
-        },
-        {
-          "title": "OSM user id",
-          "data": "uid"
+          "data": "timestamp"
         },
         {
           "title": "OSM user",
@@ -78,25 +66,29 @@
     // fill state dropdown...
     $.getJSON($SCRIPT_ROOT + '/_states', function(data) {
       var items = [];
+      items.push("<option id='XX'>---SELECT A STATE---</option>");
+
       // for each element found in json...
       $.each(data, function(i,v) {
         // add an option element to the array
-        console.log(v);
         items.push("<option id='" + v[0] + "'>" + v[1] + "</option>");
       });
       // then append the array of options to the select thing
       $("#stateselect").append(items);
     });
+    // on select different state, spring into action
+    $('#stateselect').change(onStateSelect);
   });
 
-  // on select different state, spring into action
-  $('#stateselect').change(function() {
+
+  function onStateSelect() {
     // get the selected state's id
-    var state_code = $('#stateselect').find(":selected")[0].id;
+    var state_code = $('#stateselect option:selected')[0].id;
+    if(state_code==='XX') {return};
     // clear the table
     rTable.clear();
     // call retrieve function with this state id
     retrieve_state_relations(state_code);
-  });
+  };
 </script>
 </html>
