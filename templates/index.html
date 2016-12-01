@@ -27,14 +27,14 @@
   // retrieve state relations from overpass
   function retrieve_state_relations(state_code) {
     // show busy thing
-    $("#waiting").text('getting from overpass...').css({'color':'blue'}).show()
+    $("#waiting").text('getting from overpass...').css({'color':'blue'}).fadeIn()
     // get relations from overpass
     $.getJSON($SCRIPT_ROOT + '/_routes/' + state_code, function(data) {
       // replace data in table
       rTable.rows.add(data).draw();
     }).done(function() {
       // hide busy thing
-      $("#waiting").hide()
+      $("#waiting").fadeOut()
     }).fail(function() {
       $("#waiting").text('uh oh').css({'color':'red'});
     });
@@ -45,6 +45,11 @@
     rTable = $("#relationtable").DataTable({
       "pageLength": 50,
       "columns": [
+        {
+          "title": "OSM id",
+          "data": "id",
+          "type": "num"
+        },
         {
           "title": "Route #",
           "data": "ref",
@@ -60,7 +65,12 @@
         },
         {
           "title": "Version",
-          "data": "version" }
+          "data": "version" 
+        },
+        {
+          "title": "Actions",
+          "data": "actions"
+        }
       ]});
 
     // fill state dropdown...
@@ -90,5 +100,10 @@
     // call retrieve function with this state id
     retrieve_state_relations(state_code);
   };
+
+  function loadInJosm(id) {
+    $.ajax("http://127.0.0.1:8111/load_object?objects=r"+id+"&relation_members=true");
+    $("#waiting").text('loading in JOSM').fadeIn().delay(1000).fadeOut();
+  }
 </script>
 </html>

@@ -25,17 +25,24 @@ def get_relations(state_code):
     out = []
     if 'elements' in relations and len(relations['elements']) > 0:
         for element in relations['elements']:
-            # print(element)
+            #print(element)
+            osmid = element['id']
             # remove members we don't need em
             del element['members']
+            
             # flatten tags
             if 'tags' in element:
                 for tag in element['tags']:
                     element[tag] = element['tags'][tag]
+            
             # delete original tags
             del element['tags']
+
+            # linkify user
             if 'user' in element:
                 element['user'] = '<a href="https://osm.org/user/{user}">{user}</a>'.format(user=element['user'])
+            
+            # linkify timestamp
             if 'changeset' and 'timestamp' in element:
                 dt = iso8601.parse_date(element['timestamp'])
                 datestring = dt.strftime('%Y-%m-%d %I:%M%p')
@@ -43,6 +50,13 @@ def get_relations(state_code):
                     changeset=element['changeset'],
                     datestring=datestring)
                 #element['timestamp'] = '{datestring}'.format(datestring=datestring)
+
+            # linkify osm id
+            element['id'] = '<a href="https://osm.org/relation/{id}">{id}</a>'.format(
+                id=osmid)
+
+            # append actions column
+            element['actions'] = '<a href="http://ra.osmsurround.org/analyzeRelation?relationId={id}&_noCache=on">Open in OSM relation analyzer</a> | <a href="javascript:loadInJosm({id});">Edit in JOSM</a>'.format(id=osmid)
             out.append(element)
         return jsonify(out)
     return jsonify([])
