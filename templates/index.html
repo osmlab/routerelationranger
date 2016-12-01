@@ -7,9 +7,11 @@
   <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
   <link rel=stylesheet href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
   <script src="https://cdn.datatables.net/plug-ins/1.10.12/sorting/datetime-moment.js"></script>
+  <style type="text/css">body {font-family:sans-serif}</style>
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
+  <p><small>Use this to inspect numbered road route relations for US states. Head to <a href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a href="https://mvexel.github.io">Martijn van Exel</a></small>
   <p>Pick a state:
   <select id="stateselect">
   </select>
@@ -48,28 +50,32 @@
         {
           "title": "OSM id",
           "data": "id",
-          "type": "num"
+          "searchable": false
         },
         {
           "title": "Route #",
           "data": "ref",
-          "type": "num"
         },
         {
           "title": "Last edited",
-          "data": "timestamp"
+          "data": "timestamp",
+          "searchable": false
         },
         {
           "title": "OSM user",
-          "data": "user"
+          "data": "user",
+          "searchable": false
         },
         {
           "title": "Version",
-          "data": "version" 
+          "data": "version",
+          "searchable": false
         },
         {
           "title": "Actions",
-          "data": "actions"
+          "data": "actions",
+          "searchable": false,
+          "orderable": false
         }
       ]});
 
