@@ -46,15 +46,18 @@
     // init relations datatables
     rTable = $("#relationtable").DataTable({
       "pageLength": 50,
+      "order": [[1, 'asc']],
       "columns": [
         {
           "title": "OSM id",
           "data": "id",
+          "type": "num",
           "searchable": false
         },
         {
           "title": "Route #",
           "data": "ref",
+          "type": "num"
         },
         {
           "title": "Last edited",

@@ -40,7 +40,7 @@ def get_relations(state_code):
 
             # linkify user
             if 'user' in element:
-                element['user'] = '<a href="https://osm.org/user/{user}">{user}</a>'.format(user=element['user'])
+                element['user'] = '<a href="https://openstreetmap.org/user/{user}">{user}</a>'.format(user=element['user'])
             
             # linkify timestamp
             if 'changeset' and 'timestamp' in element:
@@ -52,7 +52,7 @@ def get_relations(state_code):
                 #element['timestamp'] = '{datestring}'.format(datestring=datestring)
 
             # linkify osm id
-            element['id'] = '<a href="https://osm.org/relation/{id}">{id}</a>'.format(
+            element['id'] = '<a href="https://openstreetmap.org/relation/{id}">{id}</a>'.format(
                 id=osmid)
 
             # append actions column
