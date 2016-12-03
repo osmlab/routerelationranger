@@ -1,12 +1,12 @@
 # RRR
 
-A simple web tool to inspect US route relations for US states. Data comes from Overpass live.
+A simple web tool to inspect US route relations: Interstates, State Routes, and bike routes. Data is fetched live from Overpass.
 
 ![rrr](https://blog-image-hosting.s3.amazonaws.com/rrr.gif)
 
 ## Install
 
-You need git, python. 
+You need `git`, `python` (tested on 3.5 only). 
 
 ```bash
 git clone git@github.com:osmlab/routerelationranger.git
