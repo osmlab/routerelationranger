@@ -82,6 +82,7 @@
           "title": "OSM id",
           "data": "id",
           "render": function(data, type, full, meta) {
+            // link to OSM relation page
             return '<a target="_new" href="https://openstreetmap.org/relation/' + data + '">' + data + '</a>';
           },
           "searchable": false
@@ -91,6 +92,7 @@
           "data": null,
           "type": "num",
           "render": function(data, type, full, meta) {
+            // get ref if we have it, or return 'N/A'
             if ('ref' in full) {
               return full['ref'];
             }
@@ -101,6 +103,7 @@
           "title": "Name",
           "data": "name",
           "render": function(data, type, full, meta) {
+            // get name if we have it, or return 'N/A'
             if ('name' in full) {
               return full['name'];
             }
@@ -112,6 +115,7 @@
           "data": "timestamp",
           "searchable": false,
           "render": function(data, type, full, meta) {
+            // make date look nice and link to changeset
             var changeset_id = full['changeset'];
             var iso8601_timestamp = full['timestamp'];
             var dt = moment(iso8601_timestamp);
@@ -141,7 +145,10 @@
           "render": renderActions
         }
       ]});
+    populateStateDropdown();
+  });
 
+  function populateStateDropdown() {
     // fill state dropdown...
     $.getJSON($SCRIPT_ROOT + '/states', function(data) {
       var items = [];
@@ -158,8 +165,7 @@
     // on select different state, spring into action
     $('#stateselect').change(onStateSelect);
     $('#routetype').change(onRouteTypeSelect);
-  });
-
+  }
 
   function onStateSelect() {
     // get the selected state's id
@@ -190,6 +196,7 @@
   }
 
   function renderActions(data, type, full, meta) {
+    // Render actions column with analyze link to OSM Relations Analyzer, JOSM and Wikipedia (for road relations). Thanks Wikipedia for naming route relations consistently!
     var osmid = full['id'];
     var route_type = $('#routetype option:selected')[0].id;
     var state_code = $('#stateselect option:selected')[0].id;
