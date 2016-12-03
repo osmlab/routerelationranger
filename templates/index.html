@@ -13,18 +13,18 @@
   <style type="text/css">
     body {font-family:sans-serif}
     select, option {font: 1em sans-serif;}
-    select {width:500px;}
+    #choices select {width:500px;}
     </style>
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
   <p><small>Use this to inspect numbered route relations. Choose between Interstate (motorway), State route and Bicycle relations. For the road route relations, we search for routes with network tags conforming to the <a target="_new" href="http://wiki.openstreetmap.org/wiki/Key:network#Hierarchical_format">hierarchical convention</a>. Head to <a target="_new" href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a target="_new" href="https://mvexel.github.io">Martijn van Exel</a></small>
-  <table>
+  <table id="choices">
     <tr>
       <td>Pick a route type:</td>
       <td>
         <select id="routetype">
-          <option id="XX" selected>---SELECT ROUTE TYPE---</option>
+          <option id=0 selected>---SELECT ROUTE TYPE---</option>
           <option id="state">State routes (car)</option>
           <option id="interstate">Interstates</option>
           <option id="bicycle">Bicycle</option>
@@ -184,7 +184,7 @@
   function populateCountryDropdown() {
     $.getJSON($SCRIPT_ROOT + '/countries', function(data) {
       var items = [];
-      items.push('<option id="XX" selected>---SELECT COUNTRY---</option>');
+      items.push('<option id=0 selected>---SELECT COUNTRY---</option>');
       // for each element found in json...
       $.each(data, function(i,v) {
         // add an option element to the array
@@ -205,7 +205,7 @@
         $("#waiting").text('No states available').fadeIn().delay(1000).fadeOut();
       }
       var items = [];
-      items.push("<option id='XX-XX'>---SELECT A SUBDIVISION---</option>");
+      items.push("<option id=0>---SELECT A SUBDIVISION---</option>");
 
       // for each element found in json...
       $.each(data, function(i,v) {
@@ -216,6 +216,27 @@
       $("#stateselect").empty().append(items);
     });
     // on select different state, spring into action
+  }
+
+  function onRouteTypeSelect() {
+    var route_type = $('#routetype option:selected')[0].id;
+    // reset other dropdowns
+    $('#countryselect id').val(0);
+    $('#stateselect id').val(0);
+    console.log(route_type);
+    switch (route_type) {
+      case '0':
+        console.log('disbling country and state');
+        $('#countryselect').prop('disabled', true);
+        $('#stateselect').prop('disabled', true);
+        break;
+      case 'interstate':
+        console.log('disbling state');
+        $('#stateselect').prop('disabled', true);
+        break;
+      default:
+        break;
+    }
   }
 
   function onCountrySelect() {
@@ -238,36 +259,12 @@
     // get the selected state's id
     var state_code = $('#stateselect option:selected')[0].id;
     var route_type = $('#routetype option:selected')[0].id;
-    if(state_code==='XX') {return};
+    if(state_code==='0') {return};
     // clear the table
     rTable.clear();
     // call retrieve function with this state id
     retrieveRouteRelations();
   };
-
-  function onRouteTypeSelect() {
-    var route_type = $('#routetype option:selected')[0].id;
-    // reset other dropdowns
-    console.log('resetting dropdowns');
-    console.log($('#countryselect').prop('selectedIndex'));
-    console.log($('#stateselect').prop('selectedIndex'));
-    $('#countryselect id').val('XX');    
-    $('#stateselect id').val('XX-XX');
-    console.log(route_type);
-    switch (route_type) {
-      case 'XX':
-        console.log('disbling country and state');
-        $('#countryselect').prop('disabled', true);
-        $('#stateselect').prop('disabled', true);
-        break;
-      case 'interstate':
-        console.log('disbling state');
-        $('#stateselect').prop('disabled', true);
-        break;
-      default:
-        break;
-    }
-  }
   
   function loadInJosm(id) {
     $.ajax("http://127.0.0.1:8111/load_object?objects=r"+id+"&relation_members=true").fail(
@@ -279,16 +276,18 @@
     // Render actions column with analyze link to OSM Relations Analyzer, JOSM and Wikipedia (for road relations). Thanks Wikipedia for naming route relations consistently!
     var osmid = full['id'];
     var route_type = $('#routetype option:selected')[0].id;
-    var state_code = $('#stateselect option:selected')[0].id;
-    var state_name = $('#stateselect option:selected')[0].value;
 
     var actions = '<a target="_new" href="http://ra.osmsurround.org/analyzeRelation?relationId=' + osmid + '&_noCache=on">analyze</a> | <a target="_new" href="javascript:loadInJosm(' + osmid + ');">josm</a>';
 
-    if (route_type === "interstate") {
-      actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/Interstate_' + full['ref'] + '">wikipedia</a>'
-    };
-    if (route_type === "state") {
-      actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/' + state_name + '_State_Route_' + full['ref'] + '">wikipedia</a>';
+    if ($('#countryselect option:selected')[0].id == 'US') {
+      if (route_type === "interstate") {
+        actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/Interstate_' + full['ref'] + '">wikipedia</a>'
+      };
+      if (route_type === "state") {
+        var state_code = $('#stateselect option:selected')[0].id;
+        var state_name = $('#stateselect option:selected')[0].value;
+        actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/' + state_name + '_State_Route_' + full['ref'] + '">wikipedia</a>';
+      };
     };
     return actions;
   }
