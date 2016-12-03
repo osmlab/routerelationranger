@@ -7,11 +7,21 @@
   <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
   <link rel=stylesheet href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
   <script src="https://cdn.datatables.net/plug-ins/1.10.12/sorting/datetime-moment.js"></script>
-  <style type="text/css">body {font-family:sans-serif}</style>
+  <style type="text/css">
+    body {font-family:sans-serif}
+    select, option {font: 1em sans-serif;}
+    </style>
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
   <p><small>Use this to inspect numbered road route relations for US states. Head to <a href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a href="https://mvexel.github.io">Martijn van Exel</a></small>
+  <p>Pick a route type: 
+  <select id="routetype">
+    <option id="XX" selected>---SELECT ROUTE TYPE---</option>
+    <option id="state">State routes (car)</option>
+    <option id="interstate">Interstates</option>
+    <option id="bicycle">Bicycle</option>
+  </select>
   <p>Pick a state:
   <select id="stateselect">
   </select>
@@ -26,12 +36,26 @@
   // initialize datatables moment-based date parsing
   $.fn.dataTable.moment('YYYY-MM-DD HH:mmA');
 
-  // retrieve state relations from overpass
-  function retrieve_state_relations(state_code) {
+  // retrieve route relations from overpass
+  function retrieveRouteRelations() {
+    var route_type = $('#routetype option:selected')[0].id;
+    var state_code = $('#stateselect option:selected')[0].id;
+    var route_url
+    switch(route_type) {
+      case 'interstate':
+        route_url = $SCRIPT_ROOT + '/routes/interstate';
+        break;
+      case 'state':
+        route_url = $SCRIPT_ROOT + '/routes/state/' + state_code;
+        break;
+      case 'bicycle':
+        route_url = $SCRIPT_ROOT + '/routes/bicycle/' + state_code;
+        break;
+    }
     // show busy thing
     $("#waiting").text('getting from overpass...').css({'color':'blue'}).fadeIn()
     // get relations from overpass
-    $.getJSON($SCRIPT_ROOT + '/_routes/' + state_code, function(data) {
+    $.getJSON(route_url, function(data) {
       // replace data in table
       rTable.rows.add(data).draw();
     }).done(function() {
@@ -47,17 +71,28 @@
     rTable = $("#relationtable").DataTable({
       "pageLength": 50,
       "order": [[1, 'asc']],
+      "columnDefs": [{
+        "targets": -1,
+        "data": "id",
+        "render": renderActions
+      }],
       "columns": [
         {
           "title": "OSM id",
           "data": "id",
-          "type": "num",
+          "render": function(data, type, full, meta) {
+            return '<a href="https://openstreetmap.org/relation/' + data + '">' + data + '</a>';
+          },
           "searchable": false
         },
         {
           "title": "Route #",
           "data": "ref",
           "type": "num"
+        },
+        {
+          "title": "Name",
+          "data": "name"
         },
         {
           "title": "Last edited",
@@ -76,14 +111,15 @@
         },
         {
           "title": "Actions",
-          "data": "actions",
+        //   "data": "actions",
           "searchable": false,
-          "orderable": false
+          "orderable": false,
+          "render": renderActions
         }
       ]});
 
     // fill state dropdown...
-    $.getJSON($SCRIPT_ROOT + '/_states', function(data) {
+    $.getJSON($SCRIPT_ROOT + '/states', function(data) {
       var items = [];
       items.push("<option id='XX'>---SELECT A STATE---</option>");
 
@@ -97,22 +133,52 @@
     });
     // on select different state, spring into action
     $('#stateselect').change(onStateSelect);
+    $('#routetype').change(onRouteTypeSelect);
   });
 
 
   function onStateSelect() {
     // get the selected state's id
     var state_code = $('#stateselect option:selected')[0].id;
+    var route_type = $('#routetype option:selected')[0].id;
     if(state_code==='XX') {return};
     // clear the table
     rTable.clear();
     // call retrieve function with this state id
-    retrieve_state_relations(state_code);
+    retrieveRouteRelations();
   };
 
+  function onRouteTypeSelect() {
+    var route_type = $('#routetype option:selected')[0].id;
+    if (route_type === 'interstate') {
+      $('#stateselect').prop('disabled', true);
+      // in this case we don't need to wait for a state selection
+      retrieveRouteRelations();
+    } else {
+      $('#stateselect').prop('disabled', false);
+    }
+  }
+  
   function loadInJosm(id) {
-    $.ajax("http://127.0.0.1:8111/load_object?objects=r"+id+"&relation_members=true");
-    $("#waiting").text('loading in JOSM').fadeIn().delay(1000).fadeOut();
+    $.ajax("http://127.0.0.1:8111/load_object?objects=r"+id+"&relation_members=true").fail(
+      function(){$("#waiting").text('JOSM not open').fadeIn().delay(1000).fadeOut()}).done(
+      function() {$("#waiting").text('loading in JOSM').fadeIn().delay(1000).fadeOut();});
+  }
+
+  function renderActions(data, type, full, meta) {
+    var osmid = full['id'];
+    var route_type = $('#routetype option:selected')[0].id;
+    var state_code = $('#stateselect option:selected')[0].id;
+
+    var actions = '<a target="_new" href="http://ra.osmsurround.org/analyzeRelation?relationId=' + osmid + '&_noCache=on">analyze</a> | <a target="_new" href="javascript:loadInJosm(' + osmid + ');">josm</a>';
+
+    if (route_type === "interstate") {
+      actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/Interstate_' + full['ref'] + '">wikipedia</a>'
+    };
+    if (route_type === "state") {
+      actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/' + state_code + '_State_Route_' + full['ref'] + '">wikipedia</a>';
+    };
+    return actions;
   }
 </script>
 </html>
