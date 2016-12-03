@@ -74,23 +74,6 @@ def cleanup_element(element):
             element[tag] = element['tags'][tag]
     # delete original tags
     del element['tags']
-    # linkify user
-    if 'user' in element:
-        element['user'] = '<a href="https://openstreetmap.org/user/{user}">{user}</a>'.format(user=element['user'])
-    # linkify timestamp
-    if 'changeset' and 'timestamp' in element:
-        dt = iso8601.parse_date(element['timestamp'])
-        datestring = dt.strftime('%Y-%m-%d %I:%M%p')
-        element['timestamp'] = '<a href="https://www.openstreetmap.org/changeset/{changeset}">{datestring}</a>'.format(
-            changeset=element['changeset'],
-            datestring=datestring)
-        #element['timestamp'] = '{datestring}'.format(datestring=datestring)
-    # add name
-    if not 'name' in element:
-        element['name'] = 'N/A'
-    # add ref
-    if not 'ref' in element:
-        element['ref'] = 'N/A'
     return element
 
 if __name__ == "__main__":

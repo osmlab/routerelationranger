@@ -7,6 +7,7 @@
   <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
   <link rel=stylesheet href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
   <script src="https://cdn.datatables.net/plug-ins/1.10.12/sorting/datetime-moment.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.0/moment.min.js"></script>
   <style type="text/css">
     body {font-family:sans-serif}
     select, option {font: 1em sans-serif;}
@@ -87,22 +88,45 @@
         },
         {
           "title": "Route #",
-          "data": "ref",
-          "type": "num"
+          "data": null,
+          "type": "num",
+          "render": function(data, type, full, meta) {
+            if ('ref' in full) {
+              return full['ref'];
+            }
+            return 'N/A';
+          }
         },
         {
           "title": "Name",
-          "data": "name"
+          "data": "name",
+          "render": function(data, type, full, meta) {
+            if ('name' in full) {
+              return full['name'];
+            }
+            return 'N/A';
+          }
         },
         {
           "title": "Last edited",
           "data": "timestamp",
-          "searchable": false
+          "searchable": false,
+          "render": function(data, type, full, meta) {
+            var changeset_id = full['changeset'];
+            var iso8601_timestamp = full['timestamp'];
+            var dt = moment(iso8601_timestamp);
+            var pretty_date = dt.format('MMMM Do YYYY');
+            return '<a href="https://www.openstreetmap.org/changeset/' + changeset_id + '">' + pretty_date + '</a>';
+          }
         },
         {
           "title": "OSM user",
           "data": "user",
-          "searchable": false
+          "searchable": false,
+          "render": function(data, type, full, meta) {
+            // link to user profile
+            return '<a target="_new" href="https://openstreetmap.org/user/' + data + '">' + data + '</a> (<a target="_new" href="https://openstreetmap.org/message/new/' + data + '">msg</a>)';
+          }
         },
         {
           "title": "Version",
@@ -169,6 +193,7 @@
     var osmid = full['id'];
     var route_type = $('#routetype option:selected')[0].id;
     var state_code = $('#stateselect option:selected')[0].id;
+    var state_name = $('#stateselect option:selected')[0].value;
 
     var actions = '<a target="_new" href="http://ra.osmsurround.org/analyzeRelation?relationId=' + osmid + '&_noCache=on">analyze</a> | <a target="_new" href="javascript:loadInJosm(' + osmid + ');">josm</a>';
 
@@ -176,7 +201,7 @@
       actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/Interstate_' + full['ref'] + '">wikipedia</a>'
     };
     if (route_type === "state") {
-      actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/' + state_code + '_State_Route_' + full['ref'] + '">wikipedia</a>';
+      actions += ' | <a target="_new" href="https://en.wikipedia.org/wiki/' + state_name + '_State_Route_' + full['ref'] + '">wikipedia</a>';
     };
     return actions;
   }
