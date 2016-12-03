@@ -8,25 +8,49 @@
   <link rel=stylesheet href='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css'>
   <script src="https://cdn.datatables.net/plug-ins/1.10.12/sorting/datetime-moment.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.0/moment.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
   <style type="text/css">
     body {font-family:sans-serif}
     select, option {font: 1em sans-serif;}
+    select {width:500px;}
     </style>
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
   <p><small>Use this to inspect numbered road route relations for US states. Head to <a target="_new" href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a target="_new" href="https://mvexel.github.io">Martijn van Exel</a></small>
-  <p>Pick a route type: 
-  <select id="routetype">
-    <option id="XX" selected>---SELECT ROUTE TYPE---</option>
-    <option id="state">State routes (car)</option>
-    <option id="interstate">Interstates</option>
-    <option id="bicycle">Bicycle</option>
-  </select>
-  <p>Pick a state:
-  <select id="stateselect">
-  </select>
-  <span id="waiting" style="color:blue;display:none"> getting from overpass...</span>
+  <table>
+    <tr>
+      <td>Pick a route type:</td>
+      <td>
+        <select id="routetype">
+          <option id="XX" selected>---SELECT ROUTE TYPE---</option>
+          <option id="state">State routes (car)</option>
+          <option id="interstate">Interstates</option>
+          <option id="bicycle">Bicycle</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Pick a country:</td>
+      <td>
+        <select id="countryselect">
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Pick a country subdivision:</td>
+      <td>
+        <select id="stateselect">
+        </select>
+      </td>
+    </tr>
+    <tr height=20>
+      <td colspan=2>
+        <span id="waiting" style="color:blue;display:none"> getting from overpass...</span>
+      </td>
+    </tr>
+  </table>
   <hr>
   <table id="relationtable">
   </table>
@@ -36,23 +60,32 @@
   var rTable;
   // initialize datatables moment-based date parsing
   $.fn.dataTable.moment('YYYY-MM-DD HH:mmA');
+  // initialize select2
+  $('select').select2();
+  // enable onchanges
+  $('#routetype').change(onRouteTypeSelect);
+  $('#countryselect').change(onCountrySelect);
+  $('#stateselect').change(onStateSelect);
 
   // retrieve route relations from overpass
   function retrieveRouteRelations() {
     var route_type = $('#routetype option:selected')[0].id;
-    var state_code = $('#stateselect option:selected')[0].id;
-    var route_url
+    var route_url;
     switch(route_type) {
       case 'interstate':
-        route_url = $SCRIPT_ROOT + '/routes/interstate';
+        var country_code = $('#countryselect option:selected')[0].id;
+        route_url = $SCRIPT_ROOT + '/routes/interstate/' + country_code.split('-')[0];
         break;
       case 'state':
-        route_url = $SCRIPT_ROOT + '/routes/state/' + state_code;
+        var state_code = $('#stateselect option:selected')[0].id;
+        route_url = $SCRIPT_ROOT + '/routes/state/' + state_code.split('-').join('/');
         break;
       case 'bicycle':
-        route_url = $SCRIPT_ROOT + '/routes/bicycle/' + state_code;
+        var state_code = $('#stateselect option:selected')[0].id;
+        route_url = $SCRIPT_ROOT + '/routes/bicycle/' + state_code.split('-').join('/');
         break;
     }
+    console.log(route_url);
     // show busy thing
     $("#waiting").text('getting from overpass...').css({'color':'blue'}).fadeIn()
     // get relations from overpass
@@ -145,14 +178,34 @@
           "render": renderActions
         }
       ]});
-    populateStateDropdown();
+    populateCountryDropdown();
   });
 
-  function populateStateDropdown() {
-    // fill state dropdown...
-    $.getJSON($SCRIPT_ROOT + '/states', function(data) {
+  function populateCountryDropdown() {
+    $.getJSON($SCRIPT_ROOT + '/countries', function(data) {
       var items = [];
-      items.push("<option id='XX'>---SELECT A STATE---</option>");
+      items.push('<option id="XX" selected>---SELECT COUNTRY---</option>');
+      // for each element found in json...
+      $.each(data, function(i,v) {
+        // add an option element to the array
+        items.push("<option id='" + v[0] + "'>" + v[1] + "</option>");
+      });
+      // then append the array of options to the select thing
+      $("#countryselect").empty().append(items);
+    });
+    // on select different state, spring into action
+  }
+
+  function populateStateDropdown(country_code) {
+    // fill state dropdown...
+    $.getJSON($SCRIPT_ROOT + '/states/' + country_code, function(data) {
+      console.log(data.length);
+      if (data.length == 0) {
+        $('#stateselect').prop('disabled', true);
+        $("#waiting").text('No states available').fadeIn().delay(1000).fadeOut();
+      }
+      var items = [];
+      items.push("<option id='XX-XX'>---SELECT A SUBDIVISION---</option>");
 
       // for each element found in json...
       $.each(data, function(i,v) {
@@ -160,12 +213,27 @@
         items.push("<option id='" + v[0] + "'>" + v[1] + "</option>");
       });
       // then append the array of options to the select thing
-      $("#stateselect").append(items);
+      $("#stateselect").empty().append(items);
     });
     // on select different state, spring into action
-    $('#stateselect').change(onStateSelect);
-    $('#routetype').change(onRouteTypeSelect);
   }
+
+  function onCountrySelect() {
+    // get the selected state's id
+    var country_code = $('#countryselect option:selected')[0].id;
+    switch (country_code) {
+      case 'XX':
+        console.log('disabling state');
+        $('#stateselect').prop('disabled', true);
+        break;
+      case 'interstate':
+        $('#stateselect').prop('disabled', true);
+        retrieveRouteRelations()
+      default:
+        $('#stateselect').prop('disabled', false);
+        populateStateDropdown(country_code);
+    }
+  };
 
   function onStateSelect() {
     // get the selected state's id
@@ -180,12 +248,25 @@
 
   function onRouteTypeSelect() {
     var route_type = $('#routetype option:selected')[0].id;
-    if (route_type === 'interstate') {
-      $('#stateselect').prop('disabled', true);
-      // in this case we don't need to wait for a state selection
-      retrieveRouteRelations();
-    } else {
-      $('#stateselect').prop('disabled', false);
+    // reset other dropdowns
+    console.log('resetting dropdowns');
+    console.log($('#countryselect').prop('selectedIndex'));
+    console.log($('#stateselect').prop('selectedIndex'));
+    $('#countryselect id').val('XX');    
+    $('#stateselect id').val('XX-XX');
+    console.log(route_type);
+    switch (route_type) {
+      case 'XX':
+        console.log('disbling country and state');
+        $('#countryselect').prop('disabled', true);
+        $('#stateselect').prop('disabled', true);
+        break;
+      case 'interstate':
+        console.log('disbling state');
+        $('#stateselect').prop('disabled', true);
+        break;
+      default:
+        $('#stateselect').prop('disabled', false);
     }
   }
   

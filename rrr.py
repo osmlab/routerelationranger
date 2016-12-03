@@ -2,8 +2,9 @@
 
 from flask import Flask, render_template, jsonify, request
 import requests
-import us
 import json
+import pycountry
+import us
 
 app = Flask(__name__)
 route_type = ''
@@ -12,14 +13,24 @@ route_type = ''
 def index():
     return render_template('index.html')
 
-@app.route('/states')
-def get_states():
-    return json.dumps([[state.abbr, state.name] for state in us.STATES])
+@app.route('/countries')
+def get_countries():
+    return json.dumps([[c.alpha_2, c.name] for c in pycountry.countries])
 
-@app.route('/routes/interstate')
-def get_interstate_relations():
+@app.route('/states/<countrycode>')
+def get_states(countrycode):
+    try:
+        states = [[s.code, s.name] for s in pycountry.subdivisions.get(country_code=countrycode)]
+        return json.dumps(states)
+    except KeyError:
+        return jsonify([])
+    return jsonify([])
+
+@app.route('/routes/interstate/<country_code>')
+def get_interstate_relations(country_code):
     # get route type parameter
-    overpass_query = '[out:json];relation[network="US:I"][ref];out meta;'
+    overpass_query = '[out:json];relation[network="{country_code}:I"][ref];out meta;'.format(country_code=country_code)
+    print(overpass_query)
     response = perform_overpass(overpass_query)
     relations = response.json()
     if 'elements' in relations and len(relations['elements']) > 0:
@@ -27,11 +38,12 @@ def get_interstate_relations():
         return jsonify(out)
     return jsonify([])
 
-@app.route('/routes/bicycle/<state_code>')
-def get_bicycle_relations(state_code):
+@app.route('/routes/bicycle/<country_code>/<state_code>')
+def get_bicycle_relations(country_code, state_code):
     # get route type parameter
     overpass_query = '[out:json];area[name="{statename}"]->.a;relation[route=bicycle][network](area.a);out meta;'.format(
-        statename=us.states.lookup(state_code).name)
+        statename=pycountry.subdivisions.get(code='{}-{}'.format(country_code, state_code)).name)
+    print(overpass_query)
     response = perform_overpass(overpass_query)
     relations = response.json()
     if 'elements' in relations and len(relations['elements']) > 0:
@@ -39,9 +51,12 @@ def get_bicycle_relations(state_code):
         return jsonify(out)
     return jsonify([])
 
-@app.route('/routes/state/<state_code>')
-def get_relations(state_code):
-    overpass_query = '[out:json];relation[network="US:{}"][ref];out meta;'.format(state_code.upper())
+@app.route('/routes/state/<country_code>/<state_code>')
+def get_relations(country_code, state_code):
+    overpass_query = '[out:json];relation[network="{country_code}:{state_code}"][ref];out meta;'.format(
+        country_code=country_code,
+        state_code=state_code)
+    print(overpass_query)
     response = perform_overpass(overpass_query)
     relations = response.json()
     if 'elements' in relations and len(relations['elements']) > 0:
@@ -74,6 +89,10 @@ def cleanup_element(element):
     # delete original tags
     del element['tags']
     return element
+
+def split_code(state_code):
+    # format is COUNTRY_CODE-STATE_CODE
+    return state_code.split('-')
 
 if __name__ == "__main__":
     app.run()
