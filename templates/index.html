@@ -18,7 +18,7 @@
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
-  <p><small>Use this to inspect numbered road route relations for US states. Head to <a target="_new" href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a target="_new" href="https://mvexel.github.io">Martijn van Exel</a></small>
+  <p><small>Use this to inspect numbered route relations. Choose between Interstate (motorway), State route and Bicycle relations. For the road route relations, we search for routes with network tags conforming to the <a target="_new" href="http://wiki.openstreetmap.org/wiki/Key:network#Hierarchical_format">hierarchical convention</a>. Head to <a target="_new" href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a target="_new" href="https://mvexel.github.io">Martijn van Exel</a></small>
   <table>
     <tr>
       <td>Pick a route type:</td>
@@ -220,18 +220,17 @@
 
   function onCountrySelect() {
     // get the selected state's id
+    var route_type = $('#routetype option:selected')[0].id;
     var country_code = $('#countryselect option:selected')[0].id;
-    switch (country_code) {
-      case 'XX':
-        console.log('disabling state');
-        $('#stateselect').prop('disabled', true);
-        break;
+    switch (route_type) {
       case 'interstate':
         $('#stateselect').prop('disabled', true);
-        retrieveRouteRelations()
+        retrieveRouteRelations();
+        break;
       default:
         $('#stateselect').prop('disabled', false);
         populateStateDropdown(country_code);
+        break;
     }
   };
 
@@ -266,7 +265,7 @@
         $('#stateselect').prop('disabled', true);
         break;
       default:
-        $('#stateselect').prop('disabled', false);
+        break;
     }
   }
   
