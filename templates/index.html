@@ -14,7 +14,7 @@
 </head>
 <body>
   <h1>OSM US Route Relation Ranger</h1>
-  <p><small>Use this to inspect numbered road route relations for US states. Head to <a href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a href="https://mvexel.github.io">Martijn van Exel</a></small>
+  <p><small>Use this to inspect numbered road route relations for US states. Head to <a target="_new" href="https://github.com/osmlab/routerelationranger">Github</a> for issues and suggestions. Hacked together by <a target="_new" href="https://mvexel.github.io">Martijn van Exel</a></small>
   <p>Pick a route type: 
   <select id="routetype">
     <option id="XX" selected>---SELECT ROUTE TYPE---</option>
@@ -81,7 +81,7 @@
           "title": "OSM id",
           "data": "id",
           "render": function(data, type, full, meta) {
-            return '<a href="https://openstreetmap.org/relation/' + data + '">' + data + '</a>';
+            return '<a target="_new" href="https://openstreetmap.org/relation/' + data + '">' + data + '</a>';
           },
           "searchable": false
         },
