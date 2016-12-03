@@ -4,7 +4,6 @@ from flask import Flask, render_template, jsonify, request
 import requests
 import us
 import json
-import iso8601
 
 app = Flask(__name__)
 route_type = ''
