@@ -1,0 +1,16 @@
+../jellyfish/__init__.py
+../jellyfish/_jellyfish.py
+../jellyfish/compat.py
+../jellyfish/porter.py
+../jellyfish/test.py
+../jellyfish/__init__.pyc
+../jellyfish/_jellyfish.pyc
+../jellyfish/compat.pyc
+../jellyfish/porter.pyc
+../jellyfish/test.pyc
+../jellyfish/cjellyfish.so
+./
+dependency_links.txt
+PKG-INFO
+SOURCES.txt
+top_level.txt
