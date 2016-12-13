@@ -17,7 +17,7 @@ pip install -r requirements.text
 ## Run
 
 ```bash
-python rrr.py
+python main.py
 ```
 
 Then go to `http://localhost:5000`
